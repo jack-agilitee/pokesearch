@@ -4,14 +4,45 @@ struct RectangleOverlayView: View {
     let rectangle: RectangleObservation?
     let isStable: Bool
     let viewSize: CGSize
-    let cameraAspectRatio: CGFloat
+    let cameraAspectRatio: CGFloat = 4.0/3.0  // Default camera aspect ratio
     
     @State private var animateAppearance = false
+    
+    private func adjustedCoordinates(from rect: RectangleObservation) -> (topLeft: CGPoint, topRight: CGPoint, bottomLeft: CGPoint, bottomRight: CGPoint) {
+        // Camera uses aspectFill, so we need to calculate the scaling
+        let viewAspectRatio = viewSize.width / viewSize.height
+        
+        var effectiveSize = viewSize
+        var offset = CGPoint.zero
+        
+        if cameraAspectRatio > viewAspectRatio {
+            // Camera is wider - scale by height, crop width
+            let scale = viewSize.height
+            effectiveSize.width = scale * cameraAspectRatio
+            offset.x = (viewSize.width - effectiveSize.width) / 2.0
+        } else {
+            // Camera is taller - scale by width, crop height  
+            let scale = viewSize.width
+            effectiveSize.height = scale / cameraAspectRatio
+            offset.y = (viewSize.height - effectiveSize.height) / 2.0
+        }
+        
+        // Convert to effective coordinates
+        let coords = rect.toViewCoordinates(in: effectiveSize)
+        
+        // Apply offset from centering
+        return (
+            topLeft: CGPoint(x: coords.topLeft.x + offset.x, y: coords.topLeft.y + offset.y),
+            topRight: CGPoint(x: coords.topRight.x + offset.x, y: coords.topRight.y + offset.y),
+            bottomLeft: CGPoint(x: coords.bottomLeft.x + offset.x, y: coords.bottomLeft.y + offset.y),
+            bottomRight: CGPoint(x: coords.bottomRight.x + offset.x, y: coords.bottomRight.y + offset.y)
+        )
+    }
     
     var body: some View {
         ZStack {
             if let rect = rectangle {
-                let coords = rect.toViewCoordinates(in: viewSize)
+                let coords = adjustedCoordinates(from: rect)
                 
                 // Draw corner markers for the detected rectangle
                 RectangleCorners(

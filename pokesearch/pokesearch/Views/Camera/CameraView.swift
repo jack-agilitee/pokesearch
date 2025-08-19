@@ -16,12 +16,10 @@ struct CameraView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 // Vision-based rectangle detection overlay
-                // Camera aspect ratio is typically 4:3 or 16:9, need to account for aspect fill
                 RectangleOverlayView(
                     rectangle: visionService.detectedRectangle,
                     isStable: visionService.isStable,
-                    viewSize: geometry.size,
-                    cameraAspectRatio: 4.0/3.0  // Standard camera aspect ratio
+                    viewSize: geometry.size
                 )
                 
                 // Manual positioning overlay (shown when no card detected)
@@ -175,7 +173,7 @@ struct CameraPreview: UIViewRepresentable {
         let view = UIView()
         
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.videoGravity = .resizeAspect  // Changed from .resizeAspectFill to avoid cropping
+        previewLayer.videoGravity = .resizeAspectFill  // Back to aspectFill to fill screen
         view.layer.addSublayer(previewLayer)
         
         DispatchQueue.main.async {
