@@ -4,7 +4,7 @@ struct RectangleOverlayView: View {
     let rectangle: RectangleObservation?
     let isStable: Bool
     let viewSize: CGSize
-    let cameraAspectRatio: CGFloat = 4.0/3.0  // Default camera aspect ratio
+    let cameraAspectRatio: CGFloat = 3.0/4.0  // Camera aspect ratio when phone is vertical
     
     @State private var animateAppearance = false
     
