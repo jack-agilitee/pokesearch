@@ -3,12 +3,9 @@ import CoreImage
 import UIKit
 
 class RectangleDetector {
-    // Pokémon cards are 2.5" x 3.5" (5:7 ratio)
-    // When phone is vertical scanning vertical card: Vision sees it as 7:5 (1.4)
-    // When phone is horizontal scanning vertical card: Vision sees it as 5:7 (0.714)
-    // We need to detect BOTH orientations
-    private let minimumAspectRatio: Float = 0.65  // Covers 5:7 ratio with variance
-    private let maximumAspectRatio: Float = 1.54  // Covers 7:5 ratio with variance (1.4 + 10%)
+    // Pokémon cards are 2.5" x 3.5" (5:7 ratio), width/height = 5/7 = 0.714
+    private let minimumAspectRatio: Float = 0.65  // Allow ~10% variance below perfect 5:7 ratio
+    private let maximumAspectRatio: Float = 0.78  // Allow ~10% variance above perfect 5:7 ratio
     private let minimumSize: Float = 0.15  // Rectangle must be at least 15% of image
     private let maximumObservations = 1  // Only detect the most prominent rectangle
     
