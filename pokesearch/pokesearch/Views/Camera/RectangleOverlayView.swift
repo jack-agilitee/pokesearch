@@ -4,6 +4,7 @@ struct RectangleOverlayView: View {
     let rectangle: RectangleObservation?
     let isStable: Bool
     let viewSize: CGSize
+    let cameraAspectRatio: CGFloat
     
     @State private var animateAppearance = false
     
