@@ -3,8 +3,9 @@ import CoreImage
 import UIKit
 
 class RectangleDetector {
-    private let minimumAspectRatio: Float = 0.5  // Allow some variance from perfect 5:7 ratio
-    private let maximumAspectRatio: Float = 0.9  // 5:7 = 0.714, so this gives good range
+    // Pokémon cards are 2.5" x 3.5" (5:7 ratio), width/height = 5/7 = 0.714
+    private let minimumAspectRatio: Float = 0.65  // Allow ~10% variance below perfect 5:7 ratio
+    private let maximumAspectRatio: Float = 0.78  // Allow ~10% variance above perfect 5:7 ratio
     private let minimumSize: Float = 0.15  // Rectangle must be at least 15% of image
     private let maximumObservations = 1  // Only detect the most prominent rectangle
     
