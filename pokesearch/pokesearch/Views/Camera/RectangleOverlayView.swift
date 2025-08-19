@@ -7,6 +7,8 @@ struct RectangleOverlayView: View {
     let cameraAspectRatio: CGFloat = 3.0/4.0  // Camera aspect ratio when phone is vertical
     
     @State private var animateAppearance = false
+    @State private var stabilityProgress: Double = 0.0
+    @State private var progressTimer: Timer?
     
     private func adjustedCoordinates(from rect: RectangleObservation) -> (topLeft: CGPoint, topRight: CGPoint, bottomLeft: CGPoint, bottomRight: CGPoint) {
         // Camera uses aspectFill, so we need to calculate the scaling
@@ -51,20 +53,57 @@ struct RectangleOverlayView: View {
                     bottomLeft: coords.bottomLeft,
                     bottomRight: coords.bottomRight,
                     color: isStable ? .green : .gray,
-                    lineWidth: isStable ? 3 : 2
+                    lineWidth: isStable ? 3 : 2,
+                    progress: stabilityProgress
                 )
                 .opacity(animateAppearance ? 1 : 0)
                 .animation(.easeInOut(duration: 0.2), value: animateAppearance)
                 .onAppear {
                     animateAppearance = true
+                    startStabilityAnimation()
                 }
                 .onDisappear {
                     animateAppearance = false
+                    stopStabilityAnimation()
+                }
+                .onChange(of: isStable) { stable in
+                    if stable {
+                        stabilityProgress = 1.0
+                    } else {
+                        startStabilityAnimation()
+                    }
                 }
             }
         }
         .frame(width: viewSize.width, height: viewSize.height)
     }
+    
+    private func startStabilityAnimation() {
+        stabilityProgress = 0.0
+        progressTimer?.invalidate()
+        
+        withAnimation(.linear(duration: 2.0)) {
+            stabilityProgress = 1.0
+        }
+        
+        // Auto-capture after 2 seconds if still stable
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+            if isStable && stabilityProgress >= 1.0 {
+                // Trigger capture
+                NotificationCenter.default.post(name: .captureStableCard, object: nil)
+            }
+        }
+    }
+    
+    private func stopStabilityAnimation() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+        stabilityProgress = 0.0
+    }
+}
+
+extension Notification.Name {
+    static let captureStableCard = Notification.Name("captureStableCard")
 }
 
 struct RectangleCorners: View {
@@ -74,11 +113,14 @@ struct RectangleCorners: View {
     let bottomRight: CGPoint
     let color: Color
     let lineWidth: CGFloat
+    let progress: Double  // 0.0 to 1.0 for animation
     
-    private let cornerLength: CGFloat = 30
+    private let minCornerLength: CGFloat = 20
+    private let maxCornerLength: CGFloat = 40
     
     var body: some View {
         Canvas { context, size in
+            let cornerLength = minCornerLength + (maxCornerLength - minCornerLength) * progress
             var path = Path()
             
             // Top-left corner

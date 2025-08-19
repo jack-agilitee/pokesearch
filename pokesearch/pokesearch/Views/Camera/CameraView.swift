@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct CameraView: View {
     @StateObject private var cameraModel = CameraModel()
@@ -8,6 +9,9 @@ struct CameraView: View {
     @State private var scanLineOffset: CGFloat = -175
     @State private var pulseOpacity: Double = 0.3
     @State private var showManualOverlay = true
+    @State private var capturedImage: CIImage?
+    @State private var showCapturedCard = false
+    @State private var lastBuffer: CMSampleBuffer?
     
     var body: some View {
         GeometryReader { geometry in
@@ -73,10 +77,16 @@ struct CameraView: View {
             cameraModel.checkPermissions()
             startAnimations()
             setupVisionProcessing()
+            setupCaptureNotification()
         }
         .onDisappear {
             cameraModel.stopSession()
             visionService.reset()
+        }
+        .fullScreenCover(isPresented: $showCapturedCard) {
+            if let capturedImage = capturedImage {
+                CapturedCardView(image: capturedImage)
+            }
         }
     }
     
@@ -97,15 +107,33 @@ struct CameraView: View {
     }
     
     private func setupVisionProcessing() {
-        cameraModel.setFrameHandler { [weak visionService] buffer in
+        cameraModel.setFrameHandler { [weak visionService, weak self] buffer in
             visionService?.processBuffer(buffer)
+            self?.lastBuffer = buffer
+        }
+    }
+    
+    private func setupCaptureNotification() {
+        NotificationCenter.default.addObserver(
+            forName: .captureStableCard,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.captureCard()
         }
     }
     
     private func captureCard() {
-        // TODO: Implement card capture when stable
-        print("Card captured!")
-        dismiss()
+        guard let buffer = lastBuffer else { return }
+        
+        if let croppedImage = visionService.captureStableRectangle(from: buffer) {
+            capturedImage = croppedImage
+            showCapturedCard = true
+            
+            // Haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
+        }
     }
 }
 
