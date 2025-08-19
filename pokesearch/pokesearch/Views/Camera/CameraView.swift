@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 import UIKit
+import Combine
 
 struct CameraView: View {
     @StateObject private var cameraModel = CameraModel()
@@ -77,11 +78,13 @@ struct CameraView: View {
             cameraModel.checkPermissions()
             startAnimations()
             setupVisionProcessing()
-            setupCaptureNotification()
         }
         .onDisappear {
             cameraModel.stopSession()
             visionService.reset()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .captureStableCard)) { _ in
+            captureCard()
         }
         .fullScreenCover(isPresented: $showCapturedCard) {
             if let capturedImage = capturedImage {
@@ -107,19 +110,12 @@ struct CameraView: View {
     }
     
     private func setupVisionProcessing() {
-        cameraModel.setFrameHandler { [weak visionService, weak self] buffer in
+        cameraModel.setFrameHandler { [weak visionService] buffer in
             visionService?.processBuffer(buffer)
-            self?.lastBuffer = buffer
-        }
-    }
-    
-    private func setupCaptureNotification() {
-        NotificationCenter.default.addObserver(
-            forName: .captureStableCard,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.captureCard()
+            // Store buffer directly on main actor
+            Task { @MainActor in
+                self.lastBuffer = buffer
+            }
         }
     }
     
