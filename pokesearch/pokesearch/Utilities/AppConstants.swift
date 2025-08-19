@@ -11,7 +11,6 @@ enum AppConstants {
     
     enum UI {
         static let cardOverlayText = "Position card here"
-        static let scanInstructionText = "Align card with frame"
         static let scanButtonTitle = "Scan Card"
         static let closeButtonTitle = "Close"
     }

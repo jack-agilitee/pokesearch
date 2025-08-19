@@ -4,7 +4,7 @@ import AVFoundation
 struct CameraView: View {
     @StateObject private var cameraModel = CameraModel()
     @Environment(\.dismiss) private var dismiss
-    @State private var scanLineOffset: CGFloat = -150
+    @State private var scanLineOffset: CGFloat = -175
     @State private var pulseOpacity: Double = 0.3
     
     var body: some View {
@@ -45,7 +45,7 @@ struct CameraView: View {
             .easeInOut(duration: AppConstants.Animation.scanLineAnimationDuration)
             .repeatForever(autoreverses: true)
         ) {
-            scanLineOffset = 150
+            scanLineOffset = 175
         }
         
         withAnimation(
@@ -66,14 +66,16 @@ struct CameraOverlay: View {
             Spacer()
             
             ZStack {
+                // Vertical card frame (aspect ratio 5:7 for standard Pokémon card)
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(Color.white.opacity(pulseOpacity), lineWidth: 3)
-                    .frame(width: 320, height: 200)
+                    .frame(width: 250, height: 350)
                 
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color.black.opacity(0.01))
-                    .frame(width: 320, height: 200)
+                    .frame(width: 250, height: 350)
                 
+                // Vertical scanning line
                 Rectangle()
                     .fill(
                         LinearGradient(
@@ -82,11 +84,11 @@ struct CameraOverlay: View {
                                 Color.white.opacity(0.5),
                                 Color.white.opacity(0)
                             ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
                     )
-                    .frame(width: 280, height: 2)
+                    .frame(width: 220, height: 2)
                     .offset(y: scanLineOffset)
                 
                 VStack {
@@ -98,15 +100,6 @@ struct CameraOverlay: View {
                         .cornerRadius(8)
                 }
             }
-            
-            Text(AppConstants.UI.scanInstructionText)
-                .font(.caption)
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.black.opacity(0.6))
-                .cornerRadius(10)
-                .padding(.top, 20)
             
             Spacer()
         }
