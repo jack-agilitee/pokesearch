@@ -3,40 +3,80 @@ import AVFoundation
 
 struct CameraView: View {
     @StateObject private var cameraModel = CameraModel()
+    @StateObject private var visionService = VisionService()
     @Environment(\.dismiss) private var dismiss
     @State private var scanLineOffset: CGFloat = -175
     @State private var pulseOpacity: Double = 0.3
+    @State private var showManualOverlay = true
     
     var body: some View {
-        ZStack {
-            CameraPreview(session: cameraModel.session)
-                .edgesIgnoringSafeArea(.all)
-            
-            CameraOverlay(
-                scanLineOffset: $scanLineOffset,
-                pulseOpacity: $pulseOpacity
-            )
-            
-            VStack {
-                HStack {
-                    Spacer()
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .background(Circle().fill(Color.black.opacity(0.5)))
+        GeometryReader { geometry in
+            ZStack {
+                CameraPreview(session: cameraModel.session)
+                    .edgesIgnoringSafeArea(.all)
+                
+                // Vision-based rectangle detection overlay
+                RectangleOverlayView(
+                    rectangle: visionService.detectedRectangle,
+                    isStable: visionService.isStable,
+                    viewSize: geometry.size
+                )
+                
+                // Manual positioning overlay (shown when no card detected)
+                if showManualOverlay && visionService.detectedRectangle == nil {
+                    CameraOverlay(
+                        scanLineOffset: $scanLineOffset,
+                        pulseOpacity: $pulseOpacity
+                    )
+                    .opacity(0.3)
+                }
+                
+                VStack {
+                    HStack {
+                        // Detection status indicator
+                        DetectionStatusView(
+                            isDetecting: visionService.detectedRectangle != nil,
+                            isStable: visionService.isStable
+                        )
+                        
+                        Spacer()
+                        
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
                     }
                     .padding()
+                    
+                    Spacer()
+                    
+                    // Capture button when card is stable
+                    if visionService.isStable {
+                        Button(action: captureCard) {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 70, height: 70)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 3)
+                                        .frame(width: 80, height: 80)
+                                )
+                        }
+                        .padding(.bottom, 30)
+                    }
                 }
-                Spacer()
             }
         }
         .onAppear {
             cameraModel.checkPermissions()
             startAnimations()
+            setupVisionProcessing()
         }
         .onDisappear {
             cameraModel.stopSession()
+            visionService.reset()
         }
     }
     
@@ -54,6 +94,18 @@ struct CameraView: View {
         ) {
             pulseOpacity = 0.8
         }
+    }
+    
+    private func setupVisionProcessing() {
+        cameraModel.setFrameHandler { [weak visionService] buffer in
+            visionService?.processBuffer(buffer)
+        }
+    }
+    
+    private func captureCard() {
+        // TODO: Implement card capture when stable
+        print("Card captured!")
+        dismiss()
     }
 }
 
@@ -141,11 +193,20 @@ struct CameraPreview: UIViewRepresentable {
 }
 
 @MainActor
-class CameraModel: ObservableObject {
+class CameraModel: NSObject, ObservableObject {
     let session = AVCaptureSession()
     private var videoDeviceInput: AVCaptureDeviceInput?
+    private var videoDataOutput: AVCaptureVideoDataOutput?
+    private let videoDataOutputQueue = DispatchQueue(label: "VideoDataOutput", qos: .userInitiated)
     @Published var isSessionRunning = false
     @Published var permissionGranted = false
+    
+    // Use a non-isolated class to hold the frame handler
+    private let frameHandlerHolder = FrameHandlerHolder()
+    
+    func setFrameHandler(_ handler: @escaping (CMSampleBuffer) -> Void) {
+        frameHandlerHolder.handler = handler
+    }
     
     func checkPermissions() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -183,6 +244,17 @@ class CameraModel: ObservableObject {
                 session.addInput(videoDeviceInput)
                 self.videoDeviceInput = videoDeviceInput
             }
+            
+            // Add video data output for Vision processing
+            let videoOutput = AVCaptureVideoDataOutput()
+            videoOutput.setSampleBufferDelegate(self, queue: videoDataOutputQueue)
+            videoOutput.alwaysDiscardsLateVideoFrames = true
+            videoOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+            
+            if session.canAddOutput(videoOutput) {
+                session.addOutput(videoOutput)
+                self.videoDataOutput = videoOutput
+            }
         } catch {
             print("Error setting up camera: \(error)")
         }
@@ -207,6 +279,17 @@ class CameraModel: ObservableObject {
         
         session.stopRunning()
         isSessionRunning = false
+    }
+}
+
+// Non-isolated class to hold the frame handler
+class FrameHandlerHolder: @unchecked Sendable {
+    var handler: ((CMSampleBuffer) -> Void)?
+}
+
+extension CameraModel: AVCaptureVideoDataOutputSampleBufferDelegate {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        frameHandlerHolder.handler?(sampleBuffer)
     }
 }
 
