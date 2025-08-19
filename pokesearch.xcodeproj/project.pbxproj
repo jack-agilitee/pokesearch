@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		048696842E54A9F400EE1EB2 /* CLAUDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 048696832E54A9EB00EE1EB2 /* CLAUDE.md */; };
+		048696862E54AA0A00EE1EB2 /* project-plan.md in Resources */ = {isa = PBXBuildFile; fileRef = 048696852E54AA0200EE1EB2 /* project-plan.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		048696672E54A9E200EE1EB2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		048696562E54A9E100EE1EB2 /* pokesearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pokesearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		048696662E54A9E200EE1EB2 /* pokesearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pokesearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		048696702E54A9E200EE1EB2 /* pokesearchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = pokesearchUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		048696832E54A9EB00EE1EB2 /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
+		048696852E54AA0200EE1EB2 /* project-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "project-plan.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +50,16 @@
 		048696732E54A9E200EE1EB2 /* pokesearchUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = pokesearchUITests;
+			sourceTree = "<group>";
+		};
+		048696872E54AA1E00EE1EB2 /* todos */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = todos;
+			sourceTree = "<group>";
+		};
+		048696892E54AA2A00EE1EB2 /* .claude */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = .claude;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,10 +92,14 @@
 		0486964D2E54A9E100EE1EB2 = {
 			isa = PBXGroup;
 			children = (
+				048696832E54A9EB00EE1EB2 /* CLAUDE.md */,
+				048696872E54AA1E00EE1EB2 /* todos */,
+				048696852E54AA0200EE1EB2 /* project-plan.md */,
 				048696582E54A9E100EE1EB2 /* pokesearch */,
 				048696692E54A9E200EE1EB2 /* pokesearchTests */,
 				048696732E54A9E200EE1EB2 /* pokesearchUITests */,
 				048696572E54A9E100EE1EB2 /* Products */,
+				048696892E54AA2A00EE1EB2 /* .claude */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +130,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				048696582E54A9E100EE1EB2 /* pokesearch */,
+				048696872E54AA1E00EE1EB2 /* todos */,
+				048696892E54AA2A00EE1EB2 /* .claude */,
 			);
 			name = pokesearch;
 			packageProductDependencies = (
@@ -212,6 +235,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				048696862E54AA0A00EE1EB2 /* project-plan.md in Resources */,
+				048696842E54A9F400EE1EB2 /* CLAUDE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
