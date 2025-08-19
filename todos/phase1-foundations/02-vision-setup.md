@@ -16,9 +16,9 @@
 
 ## Visual Feedback
 - [ ] Create RectangleOverlayView.swift
-- [ ] Draw detected rectangle corners using Path
+- [ ] Draw LARGEST detected rectangle corners using Path (corners only)
 - [ ] Add green color when rectangle is stable
-- [ ] Add red color when rectangle is unstable
+- [ ] Add greay color when searching for rectangle
 - [ ] Animate rectangle appearance/disappearance
 
 ## Stability Tracking

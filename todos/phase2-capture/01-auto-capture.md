@@ -18,20 +18,19 @@
 
 ## Visual Detection Feedback
 - [ ] Keep rectangle overlay from Phase 1 visible
-- [ ] Change rectangle color: red (searching) → yellow (detected) → green (ready)
-- [ ] Add corner brackets that animate inward when card detected
+- [ ] Change corner brackets color: grey (searching) → green (detected) → green and thick (ready)
+    - [ ] The corner brackets animate inward when card detected
 - [ ] Show confidence percentage near rectangle
 - [ ] Pulse rectangle border when ready to capture
 
 ## Auto-Capture Logic
 - [ ] Create AutoCaptureManager.swift
 - [ ] Monitor all capture conditions
-- [ ] Start 3-2-1 countdown when conditions met
-- [ ] Show countdown numbers in center of rectangle
-- [ ] Cancel countdown if card moves or conditions lost
+- [ ] Animate corner brackets to thicker when conditions met
+- [ ] Reset corner brackets if card moves or conditions lost
 
 ## Capture Animation
-- [ ] Shrink rectangle slightly (95%) when capturing
+- [ ] Shrink corner brackets slightly (95%) when capturing
 - [ ] Flash white overlay at 0.3 opacity
 - [ ] Freeze the rectangle overlay in place
 - [ ] Show circular progress indicator during processing
