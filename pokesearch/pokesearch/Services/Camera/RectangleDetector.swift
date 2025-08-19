@@ -4,10 +4,11 @@ import UIKit
 
 class RectangleDetector {
     // Pokémon cards are 2.5" x 3.5" (5:7 ratio), width/height = 5/7 = 0.714
-    private let minimumAspectRatio: Float = 0.65  // Allow ~10% variance below perfect 5:7 ratio
-    private let maximumAspectRatio: Float = 0.78  // Allow ~10% variance above perfect 5:7 ratio
-    private let minimumSize: Float = 0.15  // Rectangle must be at least 15% of image
-    private let maximumObservations = 1  // Only detect the most prominent rectangle
+    // But we need wider range to detect cards at various angles
+    private let minimumAspectRatio: Float = 0.5   // More permissive minimum
+    private let maximumAspectRatio: Float = 1.5   // Allow up to 1.5 ratio for rotated cards
+    private let minimumSize: Float = 0.2  // Rectangle must be at least 20% of image
+    private let maximumObservations = 10  // Get multiple rectangles so we can pick the largest
     
     private lazy var rectangleRequest: VNDetectRectanglesRequest = {
         let request = VNDetectRectanglesRequest { [weak self] request, error in
@@ -41,6 +42,21 @@ class RectangleDetector {
         }
     }
     
+    private func calculateArea(_ rectangle: VNRectangleObservation) -> Float {
+        // Calculate area using the shoelace formula for a quadrilateral
+        let x1 = rectangle.topLeft.x
+        let y1 = rectangle.topLeft.y
+        let x2 = rectangle.topRight.x
+        let y2 = rectangle.topRight.y
+        let x3 = rectangle.bottomRight.x
+        let y3 = rectangle.bottomRight.y
+        let x4 = rectangle.bottomLeft.x
+        let y4 = rectangle.bottomLeft.y
+        
+        let area = abs((x1*y2 - x2*y1) + (x2*y3 - x3*y2) + (x3*y4 - x4*y3) + (x4*y1 - x1*y4)) / 2.0
+        return area
+    }
+    
     private func handleDetection(request: VNRequest, error: Error?) {
         guard error == nil else {
             print("Rectangle detection error: \(error!)")
@@ -51,7 +67,21 @@ class RectangleDetector {
         }
         
         guard let observations = request.results as? [VNRectangleObservation],
-              let rectangle = observations.first else {
+              !observations.isEmpty else {
+            DispatchQueue.main.async { [weak self] in
+                self?.completionHandler?(nil)
+            }
+            return
+        }
+        
+        // Find the largest rectangle by area
+        let largestRectangle = observations.max { rect1, rect2 in
+            let area1 = calculateArea(rect1)
+            let area2 = calculateArea(rect2)
+            return area1 < area2
+        }
+        
+        guard let rectangle = largestRectangle else {
             DispatchQueue.main.async { [weak self] in
                 self?.completionHandler?(nil)
             }
