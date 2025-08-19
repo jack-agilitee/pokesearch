@@ -62,46 +62,54 @@ struct CameraOverlay: View {
     @Binding var pulseOpacity: Double
     
     var body: some View {
-        VStack {
-            Spacer()
-            
-            ZStack {
-                // Vertical card frame (aspect ratio 5:7 for standard Pokémon card)
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.white.opacity(pulseOpacity), lineWidth: 3)
-                    .frame(width: 250, height: 350)
+        GeometryReader { geometry in
+            VStack {
+                Spacer()
                 
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.black.opacity(0.01))
-                    .frame(width: 250, height: 350)
-                
-                // Vertical scanning line
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.white.opacity(0),
-                                Color.white.opacity(0.5),
-                                Color.white.opacity(0)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
+                ZStack {
+                    // Calculate dimensions based on screen width with padding
+                    // Use 80% of screen width, then calculate height based on 5:7 ratio
+                    let cardWidth = geometry.size.width * 0.8
+                    let cardHeight = cardWidth * 1.4 // 7/5 = 1.4
+                    
+                    // Vertical card frame (aspect ratio 5:7 for standard Pokémon card)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(pulseOpacity), lineWidth: 3)
+                        .frame(width: cardWidth, height: cardHeight)
+                    
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.black.opacity(0.01))
+                        .frame(width: cardWidth, height: cardHeight)
+                    
+                    // Vertical scanning line
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.white.opacity(0),
+                                    Color.white.opacity(0.5),
+                                    Color.white.opacity(0)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
                         )
-                    )
-                    .frame(width: 220, height: 2)
-                    .offset(y: scanLineOffset)
-                
-                VStack {
-                    Text(AppConstants.UI.cardOverlayText)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.black.opacity(0.6))
-                        .cornerRadius(8)
+                        .frame(width: cardWidth * 0.9, height: 2)
+                        .offset(y: scanLineOffset * (cardHeight / 350)) // Scale offset based on card height
+                    
+                    VStack {
+                        Text(AppConstants.UI.cardOverlayText)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(8)
+                    }
                 }
+                
+                Spacer()
             }
-            
-            Spacer()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }
